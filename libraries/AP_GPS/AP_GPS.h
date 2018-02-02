@@ -64,13 +64,15 @@ class AP_GPS
     friend class AP_GPS_Backend;
 
 public:
-    static AP_GPS create() { return AP_GPS{}; }
-
-    constexpr AP_GPS(AP_GPS &&other) = default;
+    AP_GPS();
 
     /* Do not allow copies */
     AP_GPS(const AP_GPS &other) = delete;
     AP_GPS &operator=(const AP_GPS&) = delete;
+
+    static AP_GPS &gps() {
+        return *_singleton;
+    }
 
     // GPS driver types
     enum GPS_Type {
@@ -413,6 +415,9 @@ public:
     bool is_healthy(uint8_t instance) const;
     bool is_healthy(void) const { return is_healthy(primary_instance); }
 
+    // returns true if all GPS instances have passed all final arming checks/state changes
+    bool prepare_for_arming(void);
+
 protected:
 
     // configuration parameters
@@ -438,7 +443,7 @@ protected:
     uint32_t _log_gps_bit = -1;
 
 private:
-    AP_GPS();
+    static AP_GPS *_singleton;
 
     // returns the desired gps update rate in milliseconds
     // this does not provide any guarantee that the GPS is updating at the requested
@@ -552,4 +557,8 @@ private:
         GPS_AUTO_CONFIG_ENABLE  = 1
     };
 
+};
+
+namespace AP {
+    AP_GPS &gps();
 };
